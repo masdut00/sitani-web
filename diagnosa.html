@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnosa - Si Tani</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="container mt-3 mb-5 pb-5">
+        <div class="card p-4 shadow-sm border-0">
+            <h5 class="mb-3 text-center text-success">🩺 Cek Kesehatan Tanaman</h5>
+            
+            <input type="file" id="imageInput" class="form-control mb-2" accept="image/*">
+            <img id="imagePreview" class="img-fluid rounded d-none mb-3">
+            
+            <label class="small fw-bold">Bahan Tersedia:</label>
+            <div class="mb-3">
+                <input type="checkbox" class="bahan-check" value="Sabun" id="b1"> <label for="b1">Sabun</label>
+                <input type="checkbox" class="bahan-check" value="Minyak" id="b2"> <label for="b2">Minyak</label>
+            </div>
+
+            <button id="btn-analisa" class="btn btn-success w-100">🔍 Periksa</button>
+        </div>
+
+        <div id="result-area" class="mt-3 p-3 bg-white border rounded shadow-sm d-none">
+            <div id="output-text" class="small"></div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script> <script type="importmap">
+      { "imports": { "@google/generative-ai": "https://esm.run/@google/generative-ai" } }
+    </script>
+    <script type="module" src="js/diagnosa.js"></script>
+    <script src="js/components.js"></script> <script type="module" src="js/diagnosa.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Akun - Si Tani</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #2E8B57; display: flex; align-items: center; min-height: 100vh; }
+        .card-auth { max-width: 400px; width: 100%; margin: auto; border-radius: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card card-auth p-4 shadow-lg bg-white border-0">
+            <div class="text-center mb-4">
+                <h1 class="mb-0">📝</h1>
+                <h4 class="fw-bold text-success">Daftar Akun Baru</h4>
+                <p class="text-muted small">Bergabunglah dengan komunitas petani modern.</p>
+            </div>
+
+            <form id="registerForm">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Nama Lengkap</label>
+                    <input type="text" id="reg-nama" class="form-control" required placeholder="Contoh: Budi Santoso">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Username</label>
+                    <input type="text" id="reg-user" class="form-control" required placeholder="Tanpa spasi, cth: budi123">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Password</label>
+                    <input type="password" id="reg-pass" class="form-control" required>
+                </div>
+                
+                <button type="submit" id="btn-daftar" class="btn btn-success w-100 fw-bold mb-3">DAFTAR SEKARANG</button>
+            </form>
+
+            <div class="text-center">
+                <small class="text-muted">Sudah punya akun? <a href="index.html" class="text-success fw-bold text-decoration-none">Login disini</a></small>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { registerUser } from './js/api.js';
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const nama = document.getElementById('reg-nama').value;
+            const user = document.getElementById('reg-user').value;
+            const pass = document.getElementById('reg-pass').value;
+            const btn = document.getElementById('btn-daftar');
+
+            // Validasi Sederhana
+            if(user.includes(" ")) {
+                alert("Username tidak boleh ada spasi!");
+                return;
+            }
+
+            btn.innerHTML = "Mendaftarkan...";
+            btn.disabled = true;
+
+            const sukses = await registerUser(user, pass, nama);
+
+            if(sukses) {
+                // Karena pakai no-cors, kita anggap sukses dulu.
+                alert("✅ Pendaftaran Berhasil! Silakan Login.");
+                window.location.href = 'index.html';
+            } else {
+                alert("❌ Gagal mendaftar. Cek koneksi internet.");
+                btn.innerHTML = "DAFTAR SEKARANG";
+                btn.disabled = false;
+            }
+        });
+    </script>
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+
+</body>
+</html>
