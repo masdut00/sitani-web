@@ -9,25 +9,63 @@
 </head>
 <body>
     <div class="container mt-3 mb-5 pb-5">
+        <div id="weather-widget" class="card border-0 shadow-sm text-white mb-4 overflow-hidden" 
+             style="background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); min-height: 180px;">
+            <div class="card-body position-relative p-4">
+                
+                <div id="weather-loading" class="text-center py-4">
+                    <div class="spinner-border text-light" role="status"></div>
+                    <p class="mt-2 small mb-0 fw-bold">🛰️ Menghubungkan Satelit Cuaca...</p>
+                </div>
+
+                <div id="weather-content" class="d-none">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h2 class="fw-bold mb-0 display-4" id="w-temp">--°C</h2>
+                            <p class="mb-0 fw-bold fs-5" id="w-city">Mendeteksi Kota...</p>
+                            <small class="opacity-75" style="font-size: 0.75rem;" id="w-coords">Lat: -, Lon: -</small>
+                        </div>
+                        <div class="text-end">
+                            <div style="font-size: 3.5rem; line-height: 1;" id="w-icon">🌤️</div>
+                            <small class="fw-bold text-uppercase badge bg-white text-success mt-1" id="w-desc">Cerah</small>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3 bg-white bg-opacity-25 rounded-3 p-2 mx-0 text-center">
+                        <div class="col-6 border-end border-white border-opacity-50">
+                            <small class="d-block opacity-75" style="font-size: 0.7rem;">💧 KELEMBAPAN</small>
+                            <span class="fw-bold fs-5" id="w-humid">--%</span>
+                        </div>
+                        <div class="col-6">
+                            <small class="d-block opacity-75" style="font-size: 0.7rem;">☔ CURAH HUJAN</small>
+                            <span class="fw-bold fs-5" id="w-rain">-- mm</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-1 mt-2 pt-2 border-top border-white border-opacity-25 text-center" id="forecast-list">
+                        </div>
+                </div>
+                
+                <div style="position: absolute; top: -30px; right: -30px; font-size: 10rem; opacity: 0.1;">🌦️</div>
+            </div>
+        </div>
         
         <div id="input-section" class="card p-4 shadow-sm border-0 bg-white">
-            <h5 class="mb-3 text-center text-success fw-bold">📅 Asisten Tanam</h5>
+            <h5 class="mb-3 text-center text-success fw-bold">📅 Jadwal Tanam Pintar</h5>
+            <p class="text-muted text-center small mb-4">Buat rencana kegiatan dari awal tanam sampai panen raya.</p>
             
             <div class="mb-3">
-                <label class="form-label small fw-bold text-muted">Tanaman Apa?</label>
-                <select id="jenis-tanaman" class="form-select">
-                    <option value="Cabai Rawit">🌶️ Cabai Rawit</option>
-                    <option value="Padi Sawah">🌾 Padi Sawah</option>
-                    </select>
+                <label class="form-label fw-bold small">Tanaman Apa?</label>
+                <input type="text" id="jenis-tanaman" class="form-control" placeholder="Contoh: Cabai Merah, Durian, Kangkung...">
             </div>
 
             <div class="mb-3">
-                <label class="form-label small fw-bold text-muted">Mulai Tanam Tanggal?</label>
+                <label class="form-label fw-bold small">Mulai Tanam Tanggal?</label>
                 <input type="date" id="tgl-tanam" class="form-control">
             </div>
 
-            <button id="btn-buat-jadwal" class="btn btn-success w-100 fw-bold shadow-sm">
-                🤖 Buat Jadwal Otomatis
+            <button id="btn-buat-jadwal" class="btn btn-success w-100 fw-bold shadow-sm py-2">
+                🤖 Buat Rencana Tanam
             </button>
         </div>
 

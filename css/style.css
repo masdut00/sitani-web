@@ -6,44 +6,72 @@
     --bg-color: #f4f7f6;
 }
 
+/* =========================================
+   1. GLOBAL SETTINGS & RESET
+   ========================================= */
+
+/* HILANGKAN SCROLLBAR (Kunci Tampilan App-Like) */
+/* Untuk Chrome, Safari, dan Edge */
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+/* Untuk Firefox dan IE */
+* {
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--bg-color);
     color: #333;
     -webkit-tap-highlight-color: transparent; /* Hilangkan highlight biru di HP */
+    padding-top: 100px; /* Jarak atas agar tidak ketutup Navbar */
+    padding-bottom: 20px;
+    overscroll-behavior-y: none; /* Mencegah efek mental saat scroll mentok */
 }
 
-/* Custom Navbar */
+/* =========================================
+   2. KOMPONEN UMUM
+   ========================================= */
+
+/* Custom Navbar Background */
 .bg-tani {
     background: linear-gradient(135deg, #2E8B57 0%, #246B44 100%) !important;
 }
 
 /* Card Styling agar lebih 'App-like' */
 .card {
-    border-radius: 16px !important;
+    border-radius: 20px !important; /* Lebih bulat dikit */
     border: none !important;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.05) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
     transition: transform 0.2s;
 }
 
 /* Efek pencet pada produk toko */
 .product-card:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
-/* Navigasi Bawah */
+/* Navigasi Bawah (Bottom Bar) */
 .navbar-fixed-bottom {
-    border-radius: 20px 20px 0 0;
+    border-radius: 25px 25px 0 0;
 }
 
 .nav-link-item {
     transition: all 0.2s ease;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .nav-link-item:hover, .nav-link-item.text-success {
     opacity: 1;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
 }
 
 /* Input Form yang lebih manis */
@@ -51,34 +79,139 @@ body {
     border-radius: 12px;
     padding: 12px;
     border: 1px solid #e0e0e0;
-    background-color: #fdfdfd;
+    background-color: #fff;
+    font-size: 0.95rem;
 }
 
 .form-control:focus, .form-select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.15);
 }
 
 /* Tombol Utama */
 .btn-success {
     border-radius: 12px;
-    padding: 10px 20px;
+    padding: 12px 20px;
     background: var(--primary-color);
     border: none;
-    box-shadow: 0 4px 10px rgba(46, 139, 87, 0.3);
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.3);
+    transition: all 0.2s;
 }
 
 .btn-success:active {
     transform: scale(0.97);
+    box-shadow: 0 2px 5px rgba(46, 139, 87, 0.2);
+}
+
+.btn-success:disabled {
+    background: #a5d6a7;
+    box-shadow: none;
 }
 
 /* Loading Spinner Center */
 .loading-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255,255,255,0.8);
+    background: rgba(255,255,255,0.9); /* Lebih pekat dikit */
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 9999;
+}
+
+/* =========================================
+   3. STYLE NAVBAR KEREN (GLASSMORPHISM)
+   ========================================= */
+
+.modern-nav {
+    background: rgba(46, 139, 87, 0.85); /* Sedikit lebih transparan */
+    backdrop-filter: blur(15px); /* Blur lebih kuat */
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 1050; /* Pastikan selalu di paling atas */
+}
+
+/* Logo Kotak Putih */
+.logo-box {
+    width: 45px;
+    height: 45px;
+    background: #ffffff;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transition: transform 0.2s;
+}
+
+.logo-box:active {
+    transform: scale(0.9);
+}
+
+/* Teks Brand */
+.brand-text h1 {
+    font-size: 1.2rem;
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.brand-text small {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    display: block;
+    margin-top: -3px;
+    font-weight: 500;
+}
+
+/* Tombol Notifikasi */
+.nav-icon-btn {
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255,255,255,0.1);
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.nav-icon-btn:active {
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0.95);
+}
+
+.notif-dot {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background-color: #ff6b6b;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+}
+
+/* Avatar Profil */
+.user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.user-avatar:active {
+    transform: scale(0.9);
 }

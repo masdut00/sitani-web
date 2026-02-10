@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // KONFIGURASI
-const API_KEY_GEMINI = "AIzaSyBHZZ9vGGBRRXpCnXPntmaykhUiJpRSUTk"; 
+const API_KEY_GEMINI = "AIzaSyBp6S0R0gf7RCOUtueU6xUSMpRVIHpiIpE"; 
 const SCRIPT_ID = "AKfycbyMQzRrTlR0QPe9k61RtrwVwtQQrfoe3nRVFIZhf0MkiiTitpNaEDBLnBw0eBXRzklw"; 
 const URL_APPS_SCRIPT = `https://script.google.com/macros/s/${SCRIPT_ID}/exec`;
 
@@ -162,5 +162,17 @@ export async function laporTanam(username, tanaman, tglMulai) {
     } catch (error) {
         console.error("Gagal lapor jadwal:", error);
         return false;
+    }
+}
+
+// --- TAMBAHAN BAGIAN 6: AMBIL RIWAYAT ---
+export async function ambilRiwayat(username) {
+    try {
+        const response = await fetch(`${URL_APPS_SCRIPT}?aksi=ambil_riwayat&u=${username}`);
+        if (!response.ok) throw new Error("Gagal ambil data");
+        return await response.json();
+    } catch (error) {
+        console.error("Error Riwayat:", error);
+        return [];
     }
 }
