@@ -3,13 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jadwal - Si Tani</title>
+    <title>Jadwal Tanam - Si Tani</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
 </head>
 <body>
+
     <script src="js/components.js"></script>
-    <div class="container mt-3 mb-5 pb-5">
+
+    <div class="container pb-5 mb-5 mt-3">
+        
         <div id="weather-widget" class="card border-0 shadow-sm text-white mb-4 overflow-hidden" 
              style="background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); min-height: 180px;">
             <div class="card-body position-relative p-4">
@@ -44,48 +55,71 @@
                     </div>
 
                     <div class="row g-1 mt-2 pt-2 border-top border-white border-opacity-25 text-center" id="forecast-list">
-                        </div>
+                    </div>
                 </div>
                 
                 <div style="position: absolute; top: -30px; right: -30px; font-size: 10rem; opacity: 0.1;">🌦️</div>
             </div>
         </div>
+
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+            <div class="card-body p-4">
+                <h5 class="mb-3 text-center text-success fw-bold">📅 Jadwal Tanam Pintar</h5>
+                <p class="text-muted text-center small mb-4">Buat rencana kegiatan dan dapatkan analisa AI.</p>
+                
+                <form id="form-jadwal">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Jenis Tanaman</label>
+                        <input type="text" id="jdw-tanaman" class="form-control bg-light" required placeholder="Contoh: Cabai Merah, Durian, Kangkung...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Wilayah / Kota Tanam</label>
+                        <input type="text" id="jdw-lokasi" class="form-control bg-light" required placeholder="Contoh: Tangerang, Lembang, Surabaya">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Tanggal Mulai Ditanam</label>
+                        <input type="date" id="jdw-tanggal" class="form-control bg-light" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold rounded-pill" id="btn-simpan-jadwal">
+                        🤖 Buat Rencana Tanam
+                    </button>
+                </form>
+            </div>
+        </div>
         
-        <div id="input-section" class="card p-4 shadow-sm border-0 bg-white">
-            <h5 class="mb-3 text-center text-success fw-bold">📅 Jadwal Tanam Pintar</h5>
-            <p class="text-muted text-center small mb-4">Buat rencana kegiatan dari awal tanam sampai panen raya.</p>
-            
-            <div class="mb-3">
-                <label class="form-label fw-bold small">Tanaman Apa?</label>
-                <input type="text" id="jenis-tanaman" class="form-control" placeholder="Contoh: Cabai Merah, Durian, Kangkung...">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label fw-bold small">Mulai Tanam Tanggal?</label>
-                <input type="date" id="tgl-tanam" class="form-control">
-            </div>
-
-            <button id="btn-buat-jadwal" class="btn btn-success w-100 fw-bold shadow-sm py-2">
-                🤖 Buat Rencana Tanam
-            </button>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-success mb-0">Tanaman Saya:</h6>
+            <select id="filter-jadwal" class="form-select form-select-sm w-auto shadow-sm border-success text-success fw-bold rounded-pill px-3">
+                <option value="Semua">Tampilkan Semua</option>
+                <option value="Aktif" selected>🌱 Sedang Aktif</option>
+                <option value="Selesai">✅ Sudah Panen</option>
+            </select>
         </div>
 
-        <div id="jadwal-result" class="mt-4 d-none">
-            <div class="alert alert-success d-flex align-items-center" role="alert">
-                <span>🌱 <b>Jadwal Aktif:</b> Jangan lupa centang kegiatan yang sudah dilakukan!</span>
+        <div class="row g-3" id="jadwal-list">
+            <div class="col-12 text-center p-4">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="text-muted mt-2 small fw-bold">Memuat jadwal...</p>
             </div>
-            
-            <div id="list-kegiatan" class="list-group list-group-flush shadow-sm rounded bg-white">
-                </div>
-            
-            </div>
+        </div>
+
     </div>
 
+    <div class="modal fade" id="modalAI" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-bottom-0 bg-success text-white rounded-top-4 p-4">
+                    <h5 class="modal-title fw-bold">🤖 Panduan Asisten AI Tani</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-light p-4 p-md-5 fs-6" id="ai-response-content" style="line-height: 1.8;">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/auth.js"></script>
-    <script type="importmap">
-      { "imports": { "@google/generative-ai": "https://esm.run/@google/generative-ai" } }
-    </script>
     <script type="module" src="js/jadwal.js"></script>
-    <script src="js/components.js"></script> <script type="module" src="js/diagnosa.js"></script>
-</body>
+    </body>
 </html>

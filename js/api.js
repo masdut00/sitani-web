@@ -1,20 +1,27 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// KONFIGURASI
-const API_KEY_GEMINI = "AIzaSyBp6S0R0gf7RCOUtueU6xUSMpRVIHpiIpE"; 
-const SCRIPT_ID = "AKfycbyMQzRrTlR0QPe9k61RtrwVwtQQrfoe3nRVFIZhf0MkiiTitpNaEDBLnBw0eBXRzklw"; 
-const URL_APPS_SCRIPT = `https://script.google.com/macros/s/${SCRIPT_ID}/exec`;
-
+// ==========================================
+// 1. KONFIGURASI API GEMINI (TETAP SAMA)
+// ==========================================
+const API_KEY_GEMINI = "AIzaSyBp6S0R0gf7RCOUtueU6xUSMpRVIHpiIpE"; // Pastikan API Key Gemini kamu masih ada di sini
 const genAI = new GoogleGenerativeAI(API_KEY_GEMINI);
 
-// --- GEMINI AI ---
+// ==========================================
+// 2. KONFIGURASI DATABASE LOCALHOST (BARU)
+// ==========================================
+// Menunjuk ke folder 'api' di dalam XAMPP/htdocs/SITANI-WEB
+const BASE_URL = "http://localhost/SITANI-WEB/api/";
+
+
+// ==========================================
+// FUNGSI GEMINI AI (Tidak Berubah)
+// ==========================================
 export async function kirimKeGemini(file, promptText) {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const imageParts = await fileToGenerativePart(file);
         const result = await model.generateContent([promptText, imageParts]);
-        const response = await result.response;
-        return response.text();
+        return (await result.response).text();
     } catch (error) {
         console.error("Error Gemini Gambar:", error);
         throw error;
@@ -25,8 +32,7 @@ export async function kirimPesanTeks(promptText) {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const result = await model.generateContent(promptText);
-        const response = await result.response;
-        return response.text();
+        return (await result.response).text();
     } catch (error) {
         console.error("Error Gemini Teks:", error);
         throw error;
@@ -43,136 +49,176 @@ async function fileToGenerativePart(file) {
     });
 }
 
-// --- DATABASE (GOOGLE SHEETS) ---
 
-export async function ambilProduk() {
-    try {
-        const response = await fetch(`${URL_APPS_SCRIPT}?aksi=ambil_produk`);
-        if (!response.ok) throw new Error("Gagal");
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        return [];
-    }
-}
+// ==========================================
+// FUNGSI DATABASE (DIUBAH KE LOCALHOST PHP)
+// ==========================================
 
-export async function kirimPesanan(namaPembeli, namaProduk, harga) {
-    const tgl = new Date().toLocaleString();
-    const payload = {
-        aksi: "tambah",
-        nama_sheet: "orders",
-        isi_baris: [tgl, namaPembeli, namaProduk, harga, "Menunggu"] 
-    };
-    try {
-        await fetch(URL_APPS_SCRIPT, {
-            method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(payload)
-        });
-        return true;
-    } catch (error) { return false; }
-}
-
+// 1. Fungsi Login
 export async function loginUser(username, password) {
     try {
-        // Kirim parameter u dan p
-        const url = `${URL_APPS_SCRIPT}?aksi=login&u=${encodeURIComponent(username)}&p=${encodeURIComponent(password)}`;
-        
-        const response = await fetch(url);
-        const hasil = await response.json(); 
-        // hasil = {status: "sukses", user: "Budi"} ATAU {status: "gagal", pesan: "..."}
-        
-        return hasil;
-
-    } catch (error) {
-        console.error("Login Error:", error);
-        return {status: "error", pesan: "Gagal terhubung ke server database."};
-    }
-}
-
-export async function registerUser(username, password, namaLengkap) {
-    const payload = {
-        aksi: "register",
-        username: username,
-        password: password,
-        nama: namaLengkap
-    };
-
-    try {
-        // Kita pakai no-cors, jadi kita tidak bisa baca respon "DUPLIKAT" atau "SUKSES" secara langsung.
-        // TAPI, kita bisa berasumsi jika fetch berhasil, data terkirim.
-        // Untuk validasi duplikat yang akurat, idealnya pakai GET dulu untuk cek user, baru POST.
-        // Agar simpel untuk skripsi: Kita kirim saja.
-        
-        await fetch(URL_APPS_SCRIPT, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(payload)
+        const response = await fetch(`${BASE_URL}login.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, password: password })
         });
-        
-        return true; // Anggap sukses terkirim
-
+        return await response.json();
     } catch (error) {
-        console.error("Register Error:", error);
-        return false;
+        console.error("Error Login:", error);
+        return { status: "gagal", pesan: "Tidak dapat terhubung ke server lokal (XAMPP mungkin mati)." };
     }
 }
 
-// --- FUNGSI BARU: SIMPAN RIWAYAT ---
+// 2. Fungsi Register (Nanti kita buat file PHP-nya)
+export async function registerUser(username, password, nama, role = 'petani') {
+    try {
+        const response = await fetch(`${BASE_URL}register.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, nama, role })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error("Error Register:", error);
+        return { status: "gagal", pesan: "Gagal terhubung ke server." };
+    }
+}
+
+// 3. Fungsi Simpan Riwayat (Nanti kita buat file PHP-nya)
 export async function simpanRiwayat(username, penyakit, solusi) {
-    const tgl = new Date().toLocaleString();
-    
-    // Payload sesuai dengan yang diminta Code.gs bagian 'simpan_riwayat'
-    const payload = {
-        aksi: "simpan_riwayat",
-        nama_sheet: "riwayat", // Pastikan nama tab sheet kecil semua
-        isi_baris: [tgl, username, penyakit, solusi, "-"] 
-    };
-
     try {
-        await fetch(URL_APPS_SCRIPT, {
-            method: "POST",
-            mode: "no-cors", // Wajib no-cors untuk POST ke GAS
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(payload)
+        console.log("➡️ Mengirim data ke PHP:", { username, penyakit, solusi });
+        
+        const response = await fetch(`${BASE_URL}simpan_riwayat.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, penyakit, solusi })
         });
-        console.log("Riwayat terkirim ke server!");
-        return true;
+        
+        // Kita tangkap sebagai text biasa dulu untuk melihat apakah ada pesan Error PHP
+        const textResult = await response.text(); 
+        console.log("⬅️ Respon dari PHP:", textResult);
+        
+        try {
+            const json = JSON.parse(textResult);
+            if (json.status !== "sukses") {
+                console.error("❌ Gagal dari Database:", json.pesan);
+            } else {
+                console.log("✅ Data Riwayat berhasil masuk ke phpMyAdmin!");
+            }
+        } catch (e) {
+            console.error("❌ File PHP mengalami error (Syntax/SQL):", textResult);
+        }
+        
     } catch (error) {
-        console.error("Gagal simpan riwayat:", error);
-        return false;
+        console.error("❌ Gagal menghubungi server PHP:", error);
     }
 }
 
-// --- TAMBAHAN BAGIAN 5: LAPOR JADWAL ---
-export async function laporTanam(username, tanaman, tglMulai) {
-    const payload = {
-        aksi: "simpan_jadwal",
-        nama_sheet: "jadwal",
-        isi_baris: [tglMulai, username, tanaman, "Sedang Tanam"] 
-    };
-
-    try {
-        await fetch(URL_APPS_SCRIPT, {
-            method: "POST", mode: "no-cors",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(payload)
-        });
-        return true;
-    } catch (error) {
-        console.error("Gagal lapor jadwal:", error);
-        return false;
-    }
-}
-
-// --- TAMBAHAN BAGIAN 6: AMBIL RIWAYAT ---
+// 4. Fungsi Ambil Riwayat (Nanti kita buat file PHP-nya)
 export async function ambilRiwayat(username) {
     try {
-        const response = await fetch(`${URL_APPS_SCRIPT}?aksi=ambil_riwayat&u=${username}`);
+        const response = await fetch(`${BASE_URL}ambil_riwayat.php?u=${username}`);
         if (!response.ok) throw new Error("Gagal ambil data");
         return await response.json();
     } catch (error) {
-        console.error("Error Riwayat:", error);
+        console.error("Error Ambil Riwayat:", error);
         return [];
+    }
+}
+
+// 5. Fungsi Simpan Jadwal (Nanti kita buat file PHP-nya)
+export async function laporTanam(username, tanaman, tgl, panduan_ai) {
+    try {
+        const response = await fetch(`${BASE_URL}simpan_jadwal.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, tanaman, tanggal_mulai: tgl, panduan_ai: panduan_ai }) // Kirim ke PHP
+        });
+        return await response.json();
+    } catch (error) {
+        console.error("Error Simpan Jadwal:", error);
+        return { status: "gagal", pesan: "Error jaringan." };
+    }
+}
+
+// 6. Fungsi Ambil Produk dari Database
+export async function ambilProduk() {
+    try {
+        const response = await fetch(`${BASE_URL}ambil_produk.php`);
+        if (!response.ok) throw new Error("Gagal ambil data produk");
+        return await response.json();
+    } catch (error) {
+        console.error("Error Ambil Produk:", error);
+        return [];
+    }
+}
+
+// 7. Fungsi Checkout Pesanan Toko
+export async function checkoutPesanan(username, detail_pesanan, total_harga) {
+    try {
+        const response = await fetch(`${BASE_URL}checkout.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, detail_pesanan, total_harga })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error("Error Checkout:", error);
+        return { status: "gagal", pesan: "Gagal menghubungi server lokal." };
+    }
+}
+
+// 8. Fungsi Tambah Produk Jualan
+export async function tambahProdukBaru(dataProduk) {
+    try {
+        const response = await fetch(`${BASE_URL}tambah_produk.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataProduk)
+        });
+        return await response.json();
+    } catch (error) {
+        console.error("Error Tambah Produk:", error);
+        return { status: "gagal", pesan: "Gagal menghubungi server lokal." };
+    }
+}
+
+// 9. Fungsi Ambil Riwayat Pesanan
+export async function ambilPesanan(username) {
+    try {
+        const response = await fetch(`${BASE_URL}ambil_pesanan.php?u=${username}`);
+        if (!response.ok) throw new Error("Gagal ambil data pesanan");
+        return await response.json();
+    } catch (error) {
+        console.error("Error Ambil Pesanan:", error);
+        return [];
+    }
+}
+
+// 10. Fungsi Ambil Daftar Jadwal
+export async function ambilJadwal(username) {
+    try {
+        const response = await fetch(`${BASE_URL}ambil_jadwal.php?u=${username}`);
+        if (!response.ok) throw new Error("Gagal ambil jadwal");
+        return await response.json();
+    } catch (error) {
+        console.error("Error Ambil Jadwal:", error);
+        return [];
+    }
+}
+
+// 11. Fungsi Mengubah Status Jadwal (Panen/Selesai)
+export async function selesaikanJadwal(idJadwal) {
+    try {
+        const response = await fetch(`${BASE_URL}update_status.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: idJadwal })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error("Error Update Status:", error);
+        return { status: "gagal", pesan: "Gagal menghubungi server." };
     }
 }

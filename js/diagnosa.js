@@ -98,16 +98,25 @@ document.addEventListener('DOMContentLoaded', () => {
             // Simpan Context (Bersihkan tag HTML untuk ingatan Chatbot)
             lastDiagnosisContext = hasilHTML.replace(/<[^>]*>?/gm, ' '); 
 
-            // Simpan ke Database
-            if (hasilHTML.includes('<h4')) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = hasilHTML;
-                let namaPenyakit = tempDiv.querySelector('h4')?.innerText.replace('Diagnosa:', '').trim() || "Penyakit Tanaman";
-                let solusiText = tempDiv.innerText.replace(namaPenyakit, "").replace(/\n+/g, "; ").trim().substring(0, 500);
+            // ==========================================
+            // LOGIKA SIMPAN KE DATABASE (VERSI KEBAL ERROR)
+            // ==========================================
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = hasilHTML;
+            
+            // AI kadang pakai H4, H5, atau tulisan tebal (B). Kita deteksi semuanya.
+            let tagJudul = tempDiv.querySelector('h4, h5, h6, strong, b');
+            let namaPenyakit = tagJudul ? tagJudul.innerText.replace(/Diagnosa:/i, '').replace(/\[|\]/g, '').trim() : "Penyakit Tanaman";
+            
+            // Ambil solusi dan batasi maksimal 500 huruf agar MySQL tidak error (kepanjangan)
+            let solusiText = tempDiv.innerText.replace(namaPenyakit, "").replace(/\n+/g, "; ").trim().substring(0, 500);
 
-                if (!namaPenyakit.includes("Tidak Dikenali")) {
-                    await simpanRiwayat(currentUser, namaPenyakit, solusiText);
-                }
+            // Pastikan yang diupload beneran tanaman (bukan error)
+            if (!hasilHTML.includes("Tidak Dikenali") && !hasilHTML.includes("❌")) {
+                console.log("Sedang memproses penyimpanan ke Database...");
+                await simpanRiwayat(currentUser, namaPenyakit, solusiText);
+            } else {
+                console.log("Gambar ditolak oleh AI, tidak ada data yang disimpan.");
             }
 
         } catch (error) {

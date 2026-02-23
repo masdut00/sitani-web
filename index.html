@@ -6,36 +6,9 @@
     <title>Login - Si Tani</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #2E8B57; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }
-        .card-login { max-width: 400px; width: 100%; border-radius: 15px; }
+        body { background-color: #2E8B57; display: flex; align-items: center; min-height: 100vh; }
+        .card-auth { max-width: 400px; width: 100%; margin: auto; border-radius: 20px; }
     </style>
-</head>
-<body>
-
-    <div class="card card-login p-4 shadow-lg bg-white">
-        <div class="text-center mb-4">
-            <h1 class="mb-0">🌱</h1>
-            <h3 class="fw-bold text-success">Si Tani</h3>
-            <p class="text-muted small">Masuk untuk mulai bertani</p>
-        </div>
-
-        <form id="loginForm">
-            <div class="mb-3">
-                <label class="form-label fw-bold small">Username</label>
-                <input type="text" id="username" class="form-control" required placeholder="Nama Petani">
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold small">Password</label>
-                <input type="password" id="password" class="form-control" required placeholder="Sandi">
-            </div>
-            <button type="submit" class="btn btn-success w-100 fw-bold mb-3">MASUK</button>
-        </form>
-
-        <div class="text-center border-top pt-3">
-            <small class="text-muted">Belum punya akun? <a href="register.html" class="text-success fw-bold text-decoration-none">Daftar disini</a></small>
-        </div>
-    </div>
-
     <script type="importmap">
       {
         "imports": {
@@ -43,31 +16,83 @@
         }
       }
     </script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card card-auth p-4 shadow-lg bg-white border-0">
+            <div class="text-center mb-4">
+                <h1 class="mb-0">🌱</h1>
+                <h4 class="fw-bold text-success">Login Si Tani</h4>
+                <p class="text-muted small">Masuk untuk mulai bertani modern.</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Username</label>
+                    <input type="text" id="login-username" class="form-control" required placeholder="Masukkan username">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-bold">Password</label>
+                    <input type="password" id="login-password" class="form-control" required placeholder="Masukkan password">
+                </div>
+                
+                <button type="submit" id="btn-login" class="btn btn-success w-100 fw-bold mb-3">MASUK</button>
+            </form>
+
+            <div class="text-center">
+                <small class="text-muted">Belum punya akun? <a href="register.html" class="text-success fw-bold text-decoration-none">Daftar disini</a></small>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
-        import { loginUser } from './js/api.js';
+        import { loginUser } from './js/api.js'; 
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            // ... (Kode script login sama persis seperti sebelumnya) ...
-            e.preventDefault();
-            const userVal = document.getElementById('username').value;
-            const passVal = document.getElementById('password').value;
-            const btn = document.querySelector('button[type="submit"]');
+        document.addEventListener("DOMContentLoaded", () => {
+            const btnLogin = document.getElementById('btn-login'); 
+            
+            if (btnLogin) {
+                btnLogin.addEventListener('click', async (e) => {
+                    e.preventDefault(); // Mencegah form reload bawaan browser
 
-            btn.innerHTML = "Memeriksa...";
-            btn.disabled = true;
+                    const username = document.getElementById('login-username').value.trim();
+                    const password = document.getElementById('login-password').value.trim();
 
-            const hasil = await loginUser(userVal, passVal);
+                    if(!username || !password) {
+                        alert("Harap isi username dan password!");
+                        return;
+                    }
 
-            if (hasil.status === "sukses") {
-                localStorage.setItem('user_si_tani', hasil.user); 
-                localStorage.setItem('username_id', userVal); 
-                window.location.href = 'diagnosa.html';
-            } else {
-                alert("❌ Gagal Masuk: " + hasil.pesan);
-                btn.innerHTML = "MASUK";
-                btn.disabled = false;
+                    const teksAsli = btnLogin.innerHTML;
+                    btnLogin.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Loading...';
+                    btnLogin.disabled = true;
+
+                    try {
+                        // Tembak ke API PHP Localhost
+                        const hasil = await loginUser(username, password);
+
+                        if (hasil.status === "sukses") {
+                            // SIMPAN SESI LOGIN (Ini kunci agar tidak ditendang dari menu Jadwal)
+                            localStorage.setItem('username', hasil.username_id);
+                            localStorage.setItem('namaUser', hasil.user);
+                            localStorage.setItem('roleUser', hasil.role);
+
+                            alert("✅ Selamat datang, " + hasil.user + "!");
+                            window.location.href = "diagnosa.html"; 
+                        } else {
+                            alert("❌ Gagal: " + hasil.pesan);
+                        }
+                    } catch (error) {
+                        alert("Terjadi kesalahan jaringan.");
+                    } finally {
+                        btnLogin.innerHTML = teksAsli;
+                        btnLogin.disabled = false;
+                    }
+                });
             }
         });
     </script>
+
 </body>
 </html>

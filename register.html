@@ -9,6 +9,14 @@
         body { background-color: #2E8B57; display: flex; align-items: center; min-height: 100vh; }
         .card-auth { max-width: 400px; width: 100%; margin: auto; border-radius: 20px; }
     </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
 </head>
 <body>
 
@@ -33,6 +41,14 @@
                     <label class="form-label small fw-bold">Password</label>
                     <input type="password" id="reg-pass" class="form-control" required>
                 </div>
+                <div class="mb-4">
+                    <label class="form-label small text-muted fw-bold mb-2">Daftar Sebagai:</label>
+                    <select class="form-select shadow-sm" id="reg-role" required style="border-radius: 12px; padding: 12px;">
+                        <option value="petani" selected>👨‍🌾 Petani (Bisa Akses AI & Jual Panen)</option>
+                        <option value="penjual">🏪 Penjual (Buka Toko Tani)</option>
+                        <option value="customer">🛒 Customer (Hanya Pembeli)</option>
+                    </select>
+                </div>
                 
                 <button type="submit" id="btn-daftar" class="btn btn-success w-100 fw-bold mb-3">DAFTAR SEKARANG</button>
             </form>
@@ -44,44 +60,48 @@
     </div>
 
     <script type="module">
-        import { registerUser } from './js/api.js';
+        import { registerUser } from './js/api.js'; 
 
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        document.addEventListener("DOMContentLoaded", () => {
+            // ID sudah disesuaikan dengan HTML
+            const btnRegister = document.getElementById('btn-daftar'); 
             
-            const nama = document.getElementById('reg-nama').value;
-            const user = document.getElementById('reg-user').value;
-            const pass = document.getElementById('reg-pass').value;
-            const btn = document.getElementById('btn-daftar');
+            if (btnRegister) {
+                btnRegister.addEventListener('click', async (e) => {
+                    e.preventDefault(); 
 
-            // Validasi Sederhana
-            if(user.includes(" ")) {
-                alert("Username tidak boleh ada spasi!");
-                return;
-            }
+                    const nama = document.getElementById('reg-nama').value.trim();
+                    const username = document.getElementById('reg-user').value.trim(); // Disesuaikan
+                    const password = document.getElementById('reg-pass').value.trim(); // Disesuaikan
+                    const role = document.getElementById('reg-role').value; 
 
-            btn.innerHTML = "Mendaftarkan...";
-            btn.disabled = true;
+                    if(!nama || !username || !password) {
+                        alert("Harap isi semua kolom data!");
+                        return;
+                    }
 
-            const sukses = await registerUser(user, pass, nama);
+                    const teksAsli = btnRegister.innerHTML;
+                    btnRegister.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Mendaftar...';
+                    btnRegister.disabled = true;
 
-            if(sukses) {
-                // Karena pakai no-cors, kita anggap sukses dulu.
-                alert("✅ Pendaftaran Berhasil! Silakan Login.");
-                window.location.href = 'index.html';
-            } else {
-                alert("❌ Gagal mendaftar. Cek koneksi internet.");
-                btn.innerHTML = "DAFTAR SEKARANG";
-                btn.disabled = false;
+                    try {
+                        const hasil = await registerUser(username, password, nama, role);
+
+                        if (hasil.status === "sukses") {
+                            alert("✅ Pendaftaran Berhasil! Silakan Login.");
+                            window.location.href = "index.html"; 
+                        } else {
+                            alert("❌ Gagal: " + hasil.pesan);
+                        }
+                    } catch (error) {
+                        alert("Terjadi kesalahan jaringan.");
+                    } finally {
+                        btnRegister.innerHTML = teksAsli;
+                        btnRegister.disabled = false;
+                    }
+                });
             }
         });
-    </script>
-    <script type="importmap">
-      {
-        "imports": {
-          "@google/generative-ai": "https://esm.run/@google/generative-ai"
-        }
-      }
     </script>
 
 </body>
