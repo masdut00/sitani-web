@@ -1,11 +1,54 @@
-import { ambilProduk, checkoutPesanan } from './api.js';
+import { ambilProduk, checkoutPesanan, tambahProdukBaru } from './api.js';
 
-// Variabel untuk menyimpan barang belanjaan di memori sementara
 let keranjang = [];
-// Ambil username yang sedang login (Sesuaikan dengan key localStorage saat login)
 const currentUser = localStorage.getItem('username') || 'petani_duta'; 
 
+// Variabel penampung agar tidak perlu bolak-balik panggil database
+let semuaProdukGlobal = []; 
+
+
 document.addEventListener('DOMContentLoaded', async () => {
+
+    semuaProdukGlobal = await ambilProduk();
+    
+    // 2. Tampilkan semua produk saat pertama kali halaman dibuka
+    renderDaftarProduk(semuaProdukGlobal);
+
+    // ==========================================
+    // LOGIKA FILTER KATEGORI (TOMBOL)
+    // ==========================================
+    const filterContainer = document.getElementById('filter-kategori');
+    if (filterContainer) {
+        const tombolFilter = filterContainer.querySelectorAll('button');
+        
+        tombolFilter.forEach(tombol => {
+            tombol.addEventListener('click', (e) => {
+                const kategoriDipilih = e.target.innerText.trim();
+
+                // a. Ubah warna semua tombol jadi outline (tidak aktif)
+                tombolFilter.forEach(btn => {
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-success');
+                });
+                
+                // b. Ubah warna tombol yang diklik jadi solid (aktif)
+                e.target.classList.remove('btn-outline-success');
+                e.target.classList.add('btn-success');
+
+                // c. Saring data berdasarkan kata yang diklik
+                if (kategoriDipilih === "Semua") {
+                    renderDaftarProduk(semuaProdukGlobal);
+                } else {
+                    const produkTersaring = semuaProdukGlobal.filter(item => 
+                        // Bandingkan kategori dari database dengan teks tombol
+                        item.kategori.toLowerCase().includes(kategoriDipilih.toLowerCase())
+                    );
+                    renderDaftarProduk(produkTersaring);
+                }
+            });
+        });
+    }
+
     const productList = document.getElementById('product-list');
 
     // 1. Ambil data dari database MySQL
@@ -88,6 +131,51 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ==========================================
+// FUNGSI MENCETAK KARTU PRODUK KE HTML
+// ==========================================
+function renderDaftarProduk(dataBarang) {
+    const productList = document.getElementById('product-list');
+    productList.innerHTML = '';
+
+    if (dataBarang.length === 0) {
+        productList.innerHTML = `
+            <div class="col-12 text-center py-5 fade-in">
+                <div style="font-size: 3rem; margin-bottom: 15px;">📦</div>
+                <h6 class="text-muted fw-bold">Tidak ada produk di kategori ini.</h6>
+                <small class="text-muted">Coba cari di kategori lain.</small>
+            </div>`;
+        return;
+    }
+
+    dataBarang.forEach(item => {
+        const hargaRupiah = parseInt(item.harga).toLocaleString('id-ID');
+        const gambarValid = item.gambar && item.gambar !== "" ? item.gambar : "images/default_produk.jpg";
+        
+        const cardHTML = `
+        <div class="col-6 col-md-4 col-lg-3 fade-in">
+            <div class="card h-100 product-card shadow-sm border-0 overflow-hidden" style="border-radius: 16px;">
+                <img src="${gambarValid}" class="card-img-top bg-light" alt="${item.nama_produk}" style="height: 120px; object-fit: cover;">
+                <div class="card-body p-3 d-flex flex-column">
+                    <span class="badge bg-success bg-opacity-10 text-success mb-2" style="width: fit-content; font-size: 0.65rem;">${item.kategori}</span>
+                    <h6 class="card-title fw-bold text-dark mb-1 lh-sm" style="font-size: 0.9rem;">${item.nama_produk}</h6>
+                    <small class="text-muted d-block mb-3" style="font-size: 0.7rem;">
+                        Per <b>${item.satuan}</b> <br>
+                        <span class="opacity-75">Oleh: ${item.penjual_username}</span>
+                    </small>
+                    <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-success" style="font-size: 0.95rem;">Rp ${hargaRupiah}</span>
+                        <button class="btn btn-sm btn-success rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; font-size: 1.2rem;" onclick="tambahKeranjang(${item.id}, '${item.nama_produk}', ${item.harga})">
+                            +
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        productList.innerHTML += cardHTML;
+    });
+}
+
+// ==========================================
 // FUNGSI KERANJANG (CART SYSTEM)
 // ==========================================
 
@@ -165,39 +253,41 @@ function updateUIKeranjang() {
 const formTambah = document.getElementById('form-tambah-produk');
 if (formTambah) {
     formTambah.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Cegah halaman reload
-
-        const dataProduk = {
-            penjual_username: currentUser, // Ambil dari user yang sedang login
-            nama_produk: document.getElementById('add-nama').value,
-            kategori: document.getElementById('add-kategori').value,
-            satuan: document.getElementById('add-satuan').value,
-            harga: document.getElementById('add-harga').value,
-            gambar: document.getElementById('add-gambar').value || 'https://via.placeholder.com/150',
-            deskripsi: 'Produk asli dari ' + currentUser
-        };
+        e.preventDefault(); 
 
         const btnSimpan = document.getElementById('btn-simpan-produk');
         const teksAsli = btnSimpan.innerHTML;
-        btnSimpan.innerHTML = "Menyimpan...";
+        btnSimpan.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Mengunggah...';
         btnSimpan.disabled = true;
 
-        const hasil = await tambahProdukBaru(dataProduk);
+        // BUNGKUS TEKS & FILE DENGAN FORMDATA
+        const formData = new FormData();
+        formData.append('penjual_username', currentUser);
+        formData.append('nama_produk', document.getElementById('add-nama').value);
+        formData.append('kategori', document.getElementById('add-kategori').value);
+        formData.append('satuan', document.getElementById('add-satuan').value);
+        formData.append('harga', document.getElementById('add-harga').value);
+        formData.append('deskripsi', 'Produk asli dari ' + currentUser);
 
-        if (hasil.status === "sukses") {
+        // Ambil file gambar yang dipilih user
+        const fileGambar = document.getElementById('add-gambar').files[0];
+        if (fileGambar) {
+            formData.append('gambar', fileGambar); // Masukkan file ke dalam paketan
+        }
+
+        // Tembak API
+        const hasil = await tambahProdukBaru(formData);
+
+        if (hasil && hasil.status === "sukses") {
             alert("✅ " + hasil.pesan);
             
-            // Tutup modal
             const modalForm = bootstrap.Modal.getInstance(document.getElementById('modalTambahProduk'));
             if(modalForm) modalForm.hide();
             
-            // Reset isi form
             formTambah.reset();
-
-            // Refresh halaman untuk memunculkan produk baru
-            window.location.reload(); 
+            window.location.reload(); // Refresh toko untuk melihat barang baru
         } else {
-            alert("❌ Gagal: " + hasil.pesan);
+            alert("❌ Gagal: " + (hasil ? hasil.pesan : 'Error tidak diketahui'));
         }
 
         btnSimpan.innerHTML = teksAsli;

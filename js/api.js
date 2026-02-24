@@ -170,12 +170,11 @@ export async function checkoutPesanan(username, detail_pesanan, total_harga) {
 }
 
 // 8. Fungsi Tambah Produk Jualan
-export async function tambahProdukBaru(dataProduk) {
+export async function tambahProdukBaru(formData) {
     try {
         const response = await fetch(`${BASE_URL}tambah_produk.php`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dataProduk)
+            body: formData
         });
         return await response.json();
     } catch (error) {
@@ -183,16 +182,15 @@ export async function tambahProdukBaru(dataProduk) {
         return { status: "gagal", pesan: "Gagal menghubungi server lokal." };
     }
 }
-
 // 9. Fungsi Ambil Riwayat Pesanan
 export async function ambilPesanan(username) {
     try {
         const response = await fetch(`${BASE_URL}ambil_pesanan.php?u=${username}`);
-        if (!response.ok) throw new Error("Gagal ambil data pesanan");
+        if (!response.ok) throw new Error("Gagal ambil data pesanan dari server");
         return await response.json();
     } catch (error) {
         console.error("Error Ambil Pesanan:", error);
-        return [];
+        return []; // Kembalikan array kosong jika error agar web tidak crash
     }
 }
 

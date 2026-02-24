@@ -37,7 +37,7 @@
             + Mulai Jual Barang
         </button>
 
-        <div class="d-flex gap-2 mb-4 overflow-auto pb-2 category-scroll" style="white-space: nowrap; scrollbar-width: none;">
+        <div id="filter-kategori" class="d-flex gap-2 mb-4 overflow-auto pb-2 category-scroll" style="white-space: nowrap; scrollbar-width: none;">
             <button class="btn btn-success rounded-pill px-4 btn-sm fw-bold">Semua</button>
             <button class="btn btn-outline-success rounded-pill px-4 btn-sm fw-bold">Bibit</button>
             <button class="btn btn-outline-success rounded-pill px-4 btn-sm fw-bold">Pupuk</button>
@@ -105,8 +105,9 @@
                             <input type="number" id="add-harga" class="form-control" required placeholder="Contoh: 15000">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Link Gambar (URL)</label>
-                            <input type="text" id="add-gambar" class="form-control" placeholder="https://contoh.com/gambar.jpg" value="https://via.placeholder.com/150">
+                            <label class="form-label small fw-bold">Upload Gambar Produk</label>
+                            <input type="file" id="add-gambar" class="form-control" accept="image/*" required>
+                            <small class="text-muted" style="font-size: 0.7rem;">*Maksimal ukuran file 2MB (JPG/PNG)</small>
                         </div>
                         <button type="submit" class="btn btn-success w-100 fw-bold" id="btn-simpan-produk">Simpan & Jual</button>
                     </form>
